@@ -1,0 +1,1 @@
+﻿Install-package https://raw.githubusercontent.com/json-ld.net/master/src/JsonLD/packages.config

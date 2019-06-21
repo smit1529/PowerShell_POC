@@ -1,0 +1,57 @@
+function Get-Documents ()
+{
+    Add-PSSnapin Microsoft.SharePoint.PowerShell
+	$siteURL = " https://pegaportal.pega.com" #your site collection URL
+	$spSite = [Microsoft.SharePoint.SPSite] ($siteURL)
+    #$web = get-spweb (Read-Host "Enter Site URL")
+	if($spSite -ne $null)
+	{
+		#"Site Collection : " + $spSite.Url
+		foreach($subWeb in $spSite.AllWebs)
+		{
+			if($subWeb -ne $null)
+			{
+				 #Print each Subsite
+				 #Write-Host $subWeb.Url
+				 #"Subsite : " + $subWeb.Name + " - " + $subWeb.Url
+				 $spListColl = $subweb.Lists
+				 foreach ($list in $spListColl) 
+				{
+					if ($list.BaseTemplate -eq "DocumentLibrary") 
+					{
+						foreach ($item in $list.Items) 
+						{
+						$data = @{
+									"Web" = $subWeb.Url
+									"list" = $list.Title
+									"Item ID" = $item.ID
+									"Item URL" = $item.Url
+									"Item Name" = $item.Name
+								}
+						New-Object PSObject -Property $data
+						}
+					}
+					if($list.Title -eq "Site Pages" -or $list.Title -eq "Pages")
+					{
+					   $PagesUrl = $subWeb.Url + "/"
+					   foreach($eachPage in $list.Items)
+						{
+							$data = @{
+								"Web" = $subWeb.Url
+								"list" = $list.Title
+								"Item ID" = $eachPage.ID
+								"Item URL" = $eachPage.Url
+								"Item Name" = $eachPage.Name
+							}
+						New-Object PSObject -Property $data
+						}
+					}				
+				}
+				$subWeb.Dispose();
+			}
+		}
+    }
+}
+
+#Get-Documents | Out-GridView
+Get-Documents | Export-Csv -NoTypeInformation -Path C:\Test.csv #Provide you desired path.

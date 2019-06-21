@@ -1,0 +1,67 @@
+$LogTime = Get-Date -Format yyyy-MM-dd_hh-mm
+$LogFile = ".\UserPermissionsDetailsPatch-$LogTime.rtf"
+
+# Add SharePoint PowerShell Snapin
+
+
+if ( (Get-PSSnapin -Name Microsoft.SharePoint.PowerShell -ErrorAction SilentlyContinue) -eq $null ) {
+    Add-PSSnapin Microsoft.SharePoint.Powershell
+}
+
+$scriptBase = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
+Set-Location $scriptBase
+
+#Deleting any .rtf files in the scriptbase location
+$FindRTFFile = Get-ChildItem $scriptBase\*.* -include *.rtf
+if($FindRTFFile)
+{
+	foreach($file in $FindRTFFile)
+		{
+			remove-item $file
+		}
+}
+
+start-transcript $logfile
+
+
+$siteCollection = read-host "Enter the site collection URL "
+$username = read-host "Enter the user name (e.g: domain\username) "
+$site = get-spsite $siteCollection
+foreach($web in $site.allwebs)
+		{
+
+			#Check if the user is site collection administrator
+			$getuser = get-spuser -identity $username -web $web.url
+			
+			if($getuser.issiteadmin)
+			{
+				write-host "The user " $username " is a site collection administrator" -for green
+			}
+			
+			$permissionInfo = $web.GetUserEffectivePermissionInfo($Username)
+			$roles = $permissionInfo.RoleAssignments
+			write-host "Now checking the permissions of the user "  $Username " in the site " $web.Url -fore yellow
+			for ($i = 0; $i -lt $roles.Count; $i++)
+			{
+				$bRoles = $roles[$i].RoleDefinitionBindings
+				foreach ($roleDefinition in $bRoles)
+				{
+					if ($roles[$i].Member.ToString().Contains('\'))
+					{
+						write-host "The User "  $username  " has direct permissions "  $roleDefinition.Name -fore green
+					}
+					else
+					{
+						write-host "The User "  $username  " has permissions "  $roleDefinition.Name  " given via "  $roles[$i].Member.ToString() -fore green
+                                			}
+
+
+				}
+
+
+			}
+			
+
+		}
+
+stop-transcript
