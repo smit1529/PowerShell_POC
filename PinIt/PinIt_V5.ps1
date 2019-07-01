@@ -324,6 +324,9 @@ Add-PnPListItem -List $ListName -Values @{"Title"="Category" ; "Value" = $Catego
 $Keywords_TermSetId = Get-PnPTermSet -Identity "Keywords" -TermGroup "PinIt"
 Add-PnPListItem -List $ListName -Values @{"Title"="Keywords" ; "Value" = $Keywords_TermSetId.Id}
 
+$Resource_Type_TermSetId = Get-PnPTermSet -Identity "Resource Type" -TermGroup "PinIt"
+Add-PnPListItem -List $ListName -Values @{"Title"="Resource Type" ; "Value" = $Resource_Type_TermSetId.Id}
+
 Write-Host -f Green "Columns of" $ListName "Created"
 
 #Asset Library "PinterestImage"
